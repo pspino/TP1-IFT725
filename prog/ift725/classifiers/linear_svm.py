@@ -34,7 +34,7 @@ def svm_naive_loss_function(W, X, y, reg):
     #  terme de régularisation L2 : reg*||w||^2                                 #
     #############################################################################
 
-    # L2 = reg * abs(W**2)
+    #Transposing the weight vector to 
     wT = np.transpose(W)
     for it in range(X.shape[0]):
       real_class = y[it]
@@ -43,16 +43,18 @@ def svm_naive_loss_function(W, X, y, reg):
         if j == real_class:
           continue
         bad_score = np.dot(wT[j], X[it])
-        loss += np.sum(max(0, 1 + bad_score - good_score))
+        score = max(0, 1 + bad_score - good_score)
+        loss += score
+        if score > 0:
+          dW[:,real_class] -= X[it,:]
+          dW[:,j] += X[it,:]
+
     
-    loss /= (X.shape[0]*10)
+    loss /= (X.shape[0] * wT.shape[0])
+    dW /= W.shape[0]
+
+    #Apply L2 regulation to the loss.
     loss += reg*np.linalg.norm(W**2)
-    
-    grad_loss = np.sum(X)
-
-    
-
-    
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
     #############################################################################
