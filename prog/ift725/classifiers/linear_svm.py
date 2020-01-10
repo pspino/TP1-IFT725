@@ -34,17 +34,18 @@ def svm_naive_loss_function(W, X, y, reg):
     #  terme de régularisation L2 : reg*||w||^2                                 #
     #############################################################################
     wT = np.transpose(W)
+    dwT = np.transpose(dW)
     for n in range(X.shape[0]):
       good_class = y[n]
       score_good_class = np.dot(wT[good_class], X[n])
       for j in range(W.shape[1]):
         if j == good_class:
-          break
+          continue
         score_bad_class = np.dot(wT[j], X[n])
-        loss += np.max(0, 1 + score_bad_class - score_good_class)
-
-    loss += reg*np.absolute(W**2)
-
+        loss += np.sum(max(0, 1 + score_bad_class - score_good_class))
+      dwT += X[n]
+    loss /= (X.shape[0]*10)
+    loss += reg*np.linalg.norm(W**2)
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
     #############################################################################
