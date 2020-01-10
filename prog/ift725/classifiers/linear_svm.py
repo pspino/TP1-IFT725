@@ -36,13 +36,17 @@ def svm_naive_loss_function(W, X, y, reg):
 
     # L2 = reg * abs(W**2)
     wT = np.transpose(W)
-    for it in range(10):
+    for it in range(X.shape[0]):
       real_class = y[it]
-      bad_score = np.dot(wT[it], X[it])
       good_score = np.dot(wT[real_class], X[it])
-      loss += np.sum(max(0, 1 + bad_score - good_score))
+      for j in range(wT.shape[0]):
+        bad_score = np.dot(wT[j], X[it])
+        loss += np.sum(max(0, 1 + bad_score - good_score))
     
-    loss /= 10
+    loss += reg*np.linalg.norm(W**2)
+    loss /= (X.shape[0]*10)
+
+
     
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
