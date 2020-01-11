@@ -34,19 +34,19 @@ def svm_naive_loss_function(W, X, y, reg):
     #  terme de régularisation L2 : reg*||w||^2                                 #
     #############################################################################
 
-    #Transposing the weight vector to 
-    wT = np.transpose(W)
+    #Transposing the weight vector so that we don't recalculate it everytime in the loop.
+    wT = W.T
     for it in range(X.shape[0]):
       real_class = y[it]
-      good_score = np.dot(wT[real_class], X[it])
+      good_score = np.dot(wT[real_class], X[it])  #Find the the real class score and compare it to all the other classes weight.
       for j in range(wT.shape[0]):
         if j == real_class:
           continue
         bad_score = np.dot(wT[j], X[it])
-        score = max(0, 1 + bad_score - good_score)
+        score = max(0, 1 + bad_score - good_score)  #Applying Hinge loss function calculus.
         loss += score
         if score > 0:
-          dW[:,real_class] -= X[it,:]
+          # dW[:,real_class] -= X[it,:]   #This is to allows the impact of the wrong score to better influence the backpropagation.
           dW[:,j] += X[it,:]
 
     
@@ -76,7 +76,15 @@ def svm_vectorized_loss_function(W, X, y, reg):
     # Veuillez mettre le résultat dans la variable "loss".                      #
     # NOTE : Cette fonction ne doit contenir aucune boucle                      #
     #############################################################################
-    loss = 0.0
+    
+    scores = np.dot(X,W)
+    y_scores = np.matrix(scores[np.arange(scores.shape[0]),y]).T  #this is to get the scores of the good classes.
+    marge = np.maximum(0, 1 + scores - y_scores)
+    marge[np.arange(X.shape[0]),y] = 0
+    loss = np.mean(np.sum(marge, axis=1))
+    
+    #Applying L2 regulation.
+    loss += reg*np.linalg.norm(W)**2
 
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
@@ -92,8 +100,12 @@ def svm_vectorized_loss_function(W, X, y, reg):
     # avez utilisées pour calculer la perte.                                    #
     #############################################################################
 
-    dW = dW*0
+    marge[marge > 0] = 1
+    marge[np.arange(X.shape[0]), y] = -1*np.sum(marge,axis=1).T
+    dW = np.dot(X.T, marge)
 
+    dW /= X.shape[0]
+    dW += reg*W 
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
     #############################################################################
