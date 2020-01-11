@@ -22,8 +22,29 @@ def svm_naive_loss_function(W, X, y, reg):
     - loss as single float
     - gradient with respect to weights W; an array of same shape as W
     """
+    
     dW = np.zeros(W.shape)  # initialize the gradient as zero
     loss = 0.0
+    
+    nb_class = W.shape[1]
+    nb_data = X.shape[0]
+
+    for n in range(nb_data):
+      score = np.dot(W.T, X[n,:])
+      good_score = score[y[n]]
+      for j in range(nb_class):
+        if(y[n] == j):
+          continue
+        bad_score = score[j]
+        margin = bad_score - good_score + 1
+        #if(margin > 0):
+        dW[:,y[n]] -= X[n,:]
+        dW[:,j] += X[n,:]
+        loss += max(0,margin)
+    loss /= nb_data  
+    loss += reg*np.linalg.norm(W**2)
+    dW /= nb_data
+
     #############################################################################
     # TODO: Calculez le gradient "dW" et la perte "loss" et stockez le résultat #
     #  dans "dW et dans "loss".                                                 #
@@ -33,7 +54,7 @@ def svm_naive_loss_function(W, X, y, reg):
     #  être par la suite moyennés.  Et, à la fin, n'oubliez pas d'ajouter le    #
     #  terme de régularisation L2 : reg*||w||^2                                 #
     #############################################################################
-
+    
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
     #############################################################################
