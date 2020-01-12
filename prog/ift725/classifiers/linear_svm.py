@@ -71,7 +71,13 @@ def svm_vectorized_loss_function(W, X, y, reg):
     # Veuillez mettre le résultat dans la variable "loss".                      #
     # NOTE : Cette fonction ne doit contenir aucune boucle                      #
     #############################################################################
-    loss = 0.0
+    N = X.shape[0]
+    scores = np.dot(X, W)
+    y_scores = scores[np.arange(N), y]  
+    margin = np.maximum(0, 1 + scores - np.matrix(y_scores).T)
+    margin[np.arange(N), y] = 0
+    loss = np.mean(np.sum(margin, axis=1))
+    loss += reg*np.linalg.norm(W**2)
 
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
@@ -87,7 +93,13 @@ def svm_vectorized_loss_function(W, X, y, reg):
     # avez utilisées pour calculer la perte.                                    #
     #############################################################################
 
-    dW = dW*0
+    binary = margin
+    binary[margin > 0] = 1
+    row_sum = np.sum(binary, axis=1)
+    binary[np.arange(N), y] = -row_sum.T
+    dW = np.dot(X.T, binary)
+
+    dW /= N
 
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
