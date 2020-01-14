@@ -46,15 +46,15 @@ def svm_naive_loss_function(W, X, y, reg):
         score = max(0, 1 + bad_score - good_score)  #Applying Hinge loss function calculus.
         loss += score
         if score > 0:
-          dW[:,real_class] -= X[it,:]   #This is to allows the impact of the wrong score to better influence the backpropagation.
-          dW[:,j] += X[it,:]
-
+          dW.T[real_class] -= X[it]
+          dW.T[j] += X[it]
     
-    loss /= (X.shape[0] * (wT.shape[0] - 1))
-    dW /= W.shape[0]
+    loss /= X.shape[0]
+    dW /= X.shape[0]
 
     #Apply L2 regulation to the loss.
-    loss += reg*np.linalg.norm(W**2)
+    loss += reg * np.linalg.norm(W)**2
+
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
     #############################################################################
@@ -67,6 +67,17 @@ def svm_vectorized_loss_function(W, X, y, reg):
     Structured SVM loss function, vectorized implementation.
 
     Inputs and outputs are the same as svm_loss_naive.
+    
+    Inputs:
+    - W: A numpy array of shape (D, C) containing weights.
+    - X: A numpy array of shape (N, D) containing a minibatch of data.
+    - y: A numpy array of shape (N,) containing training labels; y[i] = c means
+      that X[i] has label c, where 0 <= c < C.
+    - reg: (float) regularization strength
+
+    Returns a tuple of:
+    - loss as single float
+    - gradient with respect to weights W; an array of same shape as W
     """
     loss = 0.0
     dW = np.zeros(W.shape)  # initialize the gradient as zero
@@ -78,8 +89,8 @@ def svm_vectorized_loss_function(W, X, y, reg):
     #############################################################################
     
     scores = np.dot(X,W)
-    y_scores = np.matrix(scores[np.arange(scores.shape[0]),y]).T  #this is to get the scores of the good classes.
-    marge = np.maximum(0, 1 + scores - y_scores)
+    y_scores = np.matrix(scores[np.arange(scores.shape[0]),y]) #this is to get the scores of the good classes.
+    marge = np.maximum(0, 1 + scores - y_scores.T)
     marge[np.arange(X.shape[0]),y] = 0
     loss = np.mean(np.sum(marge, axis=1))
     
@@ -101,11 +112,11 @@ def svm_vectorized_loss_function(W, X, y, reg):
     #############################################################################
 
     marge[marge > 0] = 1
-    marge[np.arange(X.shape[0]), y] = -1*np.sum(marge,axis=1).T
+    marge[np.arange(X.shape[0]), y] = -1 * np.sum(marge,axis=1).T
     dW = np.dot(X.T, marge)
 
     dW /= X.shape[0]
-    dW += reg*W 
+    dW += reg * W 
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
     #############################################################################
