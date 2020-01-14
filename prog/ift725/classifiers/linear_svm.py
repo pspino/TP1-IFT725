@@ -46,11 +46,11 @@ def svm_naive_loss_function(W, X, y, reg):
         score = max(0, 1 + bad_score - good_score)  #Applying Hinge loss function calculus.
         loss += score
         if score > 0:
-          # dW[:,real_class] -= X[it,:]   #This is to allows the impact of the wrong score to better influence the backpropagation.
+          dW[:,real_class] -= X[it,:]   #This is to allows the impact of the wrong score to better influence the backpropagation.
           dW[:,j] += X[it,:]
 
     
-    loss /= (X.shape[0] * wT.shape[0])
+    loss /= (X.shape[0] * (wT.shape[0] - 1))
     dW /= W.shape[0]
 
     #Apply L2 regulation to the loss.
