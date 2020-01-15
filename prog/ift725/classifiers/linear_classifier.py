@@ -39,8 +39,9 @@ class LinearClassifier(object):
         # Run stochastic gradient descent to optimize W
         loss_history = []
         for it in range(num_iters):
-            X_batch = None
-            y_batch = None
+            rand_it = np.random.randint(num_train, size=batch_size)
+            X_batch = X[rand_it]
+            y_batch = y[rand_it]
 
             #########################################################################
             # TODO: Échantillonnez "batch_size" éléments à partir des données       #
@@ -70,6 +71,8 @@ class LinearClassifier(object):
             #  d'apprentissagethe weights using the gradient and the learning rate. #
             #########################################################################
 
+            self.W = self.W - learning_rate*grad
+
             #########################################################################
             #                      FIN DE VOTRE CODE                                #
             #########################################################################
@@ -97,7 +100,9 @@ class LinearClassifier(object):
         # TODO: Implémentez cette fonction.                                       #
         # Stockez les étiquettes prédites dans "labels_pred".                     #
         ###########################################################################
-
+        for it in range(X.shape[0]):
+          score = X[it].dot(self.W)
+          labels_pred[it] = np.argmax(score)
         ###########################################################################
         #                          FIN DE VOTRE CODE                              #
         ###########################################################################
@@ -118,7 +123,7 @@ class LinearClassifier(object):
         - loss as a single float
         - gradient with respect to self.W; an array of the same shape as W
         """
-        pass
+        pass 
 
 
 class LinearSVM(LinearClassifier):
