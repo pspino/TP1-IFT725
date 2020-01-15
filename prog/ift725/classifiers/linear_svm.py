@@ -35,12 +35,12 @@ def svm_naive_loss_function(W, X, y, reg):
       for j in range(nb_class):
         if(y[n] == j):
           continue
-        bad_score = score[j]
+        bad_score = score[j]   
         margin = bad_score - good_score + 1
-        #if(margin > 0):
-        dW[:,y[n]] -= X[n,:]
-        dW[:,j] += X[n,:]
-        loss += max(0,margin)
+        if(margin > 0):
+          dW[:,y[n]] -= X[n,:]
+          dW[:,j] += X[n,:]
+          loss += max(0,margin)
     loss /= nb_data  
     loss += reg*np.linalg.norm(W**2)
     dW /= nb_data
@@ -70,14 +70,23 @@ def svm_vectorized_loss_function(W, X, y, reg):
     """
     loss = 0.0
     dW = np.zeros(W.shape)  # initialize the gradient as zero
-
+    nb_class = W.shape[1]
+    nb_data = X.shape[0]
+    
     #############################################################################
     # TODO: Implémentez une version vectorisée de la fonction de perte SVM.     #
     # Veuillez mettre le résultat dans la variable "loss".                      #
     # NOTE : Cette fonction ne doit contenir aucune boucle                      #
     #############################################################################
     loss = 0.0
-
+    scores = np.dot(X,W)
+    y_scores = np.matrix(scores[np.arange(scores.shape[0]),y]) #this is to get the scores of the good classes.
+    marge = np.maximum(0, 1 + scores - y_scores.T)
+    marge[np.arange(X.shape[0]),y] = 0
+    loss = np.mean(np.sum(marge, axis=1))
+    
+    #Applying L2 regulation.
+    loss += reg*np.linalg.norm(W)**2
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
     #############################################################################
@@ -92,7 +101,12 @@ def svm_vectorized_loss_function(W, X, y, reg):
     # avez utilisées pour calculer la perte.                                    #
     #############################################################################
 
-    dW = dW*0
+    marge[marge > 0] = 1
+    marge[np.arange(X.shape[0]), y] = -1 * np.sum(marge,axis=1).T
+    dW = np.dot(X.T, marge)
+
+    dW /= X.shape[0]
+    dW += reg * W 
 
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
