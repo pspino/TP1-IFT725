@@ -22,10 +22,17 @@ def svm_naive_loss_function(W, X, y, reg):
     - loss as single float
     - gradient with respect to weights W; an array of same shape as W
     """
-    
     dW = np.zeros(W.shape)  # initialize the gradient as zero
     loss = 0.0
-    
+    #############################################################################
+    # TODO: Calculez le gradient "dW" et la perte "loss" et stockez le résultat #
+    #  dans "dW et dans "loss".                                                 #
+    #  Pour cette implementation, vous devez naivement boucler sur chaque pair  #
+    #  (X[i],y[i]), déterminer la perte (loss) ainsi que le gradient (voir      #
+    #  exemple dans les notes de cours).  La loss ainsi que le gradient doivent #
+    #  être par la suite moyennés.  Et, à la fin, n'oubliez pas d'ajouter le    #
+    #  terme de régularisation L2 : reg*||w||^2                                 #
+    #############################################################################
     nb_class = W.shape[1]
     nb_data = X.shape[0]
 
@@ -46,16 +53,6 @@ def svm_naive_loss_function(W, X, y, reg):
     dW /= nb_data
 
     #############################################################################
-    # TODO: Calculez le gradient "dW" et la perte "loss" et stockez le résultat #
-    #  dans "dW et dans "loss".                                                 #
-    #  Pour cette implementation, vous devez naivement boucler sur chaque pair  #
-    #  (X[i],y[i]), déterminer la perte (loss) ainsi que le gradient (voir      #
-    #  exemple dans les notes de cours).  La loss ainsi que le gradient doivent #
-    #  être par la suite moyennés.  Et, à la fin, n'oubliez pas d'ajouter le    #
-    #  terme de régularisation L2 : reg*||w||^2                                 #
-    #############################################################################
-    
-    #############################################################################
     #                            FIN DE VOTRE CODE                              #
     #############################################################################
 
@@ -72,7 +69,6 @@ def svm_vectorized_loss_function(W, X, y, reg):
     dW = np.zeros(W.shape)  # initialize the gradient as zero
     nb_class = W.shape[1]
     nb_data = X.shape[0]
-    
     #############################################################################
     # TODO: Implémentez une version vectorisée de la fonction de perte SVM.     #
     # Veuillez mettre le résultat dans la variable "loss".                      #
@@ -101,13 +97,14 @@ def svm_vectorized_loss_function(W, X, y, reg):
     # avez utilisées pour calculer la perte.                                    #
     #############################################################################
 
+    dW = dW*0
+
     marge[marge > 0] = 1
     marge[np.arange(X.shape[0]), y] = -1 * np.sum(marge,axis=1).T
     dW = np.dot(X.T, marge)
 
     dW /= X.shape[0]
     dW += reg * W 
-
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
     #############################################################################
