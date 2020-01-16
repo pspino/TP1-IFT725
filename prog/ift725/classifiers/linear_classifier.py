@@ -39,8 +39,6 @@ class LinearClassifier(object):
         # Run stochastic gradient descent to optimize W
         loss_history = []
         for it in range(num_iters):
-            X_batch = None
-            y_batch = None
 
             #########################################################################
             # TODO: Échantillonnez "batch_size" éléments à partir des données       #
@@ -56,6 +54,10 @@ class LinearClassifier(object):
             # l'échantillonnage sans remplacement.                                  #
             #########################################################################
 
+            indexes = np.random.choice(num_train, batch_size)
+            X_batch = X[indexes]
+            y_batch = y[indexes]
+
             #########################################################################
             #                      FIN DE VOTRE CODE                                #
             #########################################################################
@@ -67,8 +69,10 @@ class LinearClassifier(object):
             # perform parameter update
             #########################################################################
             # TODO: Mise à jour des poids en utilisant le gradient et la vitesse    #
-            #  d'apprentissagethe weights using the gradient and the learning rate. #
+            #  d'apprentissage.                                                     #
             #########################################################################
+
+            self.W = self.W - learning_rate * grad
 
             #########################################################################
             #                      FIN DE VOTRE CODE                                #
@@ -97,6 +101,10 @@ class LinearClassifier(object):
         # TODO: Implémentez cette fonction.                                       #
         # Stockez les étiquettes prédites dans "labels_pred".                     #
         ###########################################################################
+        N = X.shape[0]
+        for n in range(N):
+          score = np.dot(X[n], self.W)
+          labels_pred[n] = np.argmax(score)
 
         ###########################################################################
         #                          FIN DE VOTRE CODE                              #

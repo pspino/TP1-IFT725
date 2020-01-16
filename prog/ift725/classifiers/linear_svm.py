@@ -37,16 +37,15 @@ def svm_naive_loss_function(W, X, y, reg):
     N, D = X.shape[0], W.shape[1]
     for n in range(N):
       scores = np.dot(wT, X[n])
-      good_class = y[n]
-      good_score_class = scores[good_class]
+      good_score = scores[y[n]]
       for j in range(D):
-        if j == good_class:
+        if j == y[n]:
           continue
-        margin = 1 + scores[j] - good_score_class
+        margin = 1 + scores[j] - good_score
         if margin > 0: # when bad class
-          loss += margin
-          dwT[good_class] -= X[n] 
+          dwT[y[n]] -= X[n] 
           dwT[j] += X[n]
+          loss += max(0, margin)
     loss /= N
     dW /= N
     loss += reg*np.linalg.norm(W**2)
@@ -71,13 +70,16 @@ def svm_vectorized_loss_function(W, X, y, reg):
     # Veuillez mettre le résultat dans la variable "loss".                      #
     # NOTE : Cette fonction ne doit contenir aucune boucle                      #
     #############################################################################
+
     N = X.shape[0]
     scores = np.dot(X, W)
-    y_scores = scores[np.arange(N), y]  
-    margin = np.maximum(0, 1 + scores - np.matrix(y_scores).T)
-    margin[np.arange(N), y] = 0
+    y_scores = np.matrix(scores[np.arange(scores.shape[0]),y]) #this is to get the scores of the good classes.
+    margin = np.maximum(0, 1 + scores - y_scores.T)
+    margin[np.arange(X.shape[0]),y] = 0
     loss = np.mean(np.sum(margin, axis=1))
-    loss += reg*np.linalg.norm(W**2)
+    
+    #Applying L2 regulation.
+    loss += reg*np.linalg.norm(W)**2
 
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
@@ -93,13 +95,14 @@ def svm_vectorized_loss_function(W, X, y, reg):
     # avez utilisées pour calculer la perte.                                    #
     #############################################################################
 
-    binary = margin
-    binary[margin > 0] = 1
-    row_sum = np.sum(binary, axis=1)
-    binary[np.arange(N), y] = -row_sum.T
-    dW = np.dot(X.T, binary)
+    dW = dW*0
 
-    dW /= N
+    margin[margin > 0] = 1
+    margin[np.arange(X.shape[0]), y] = -1 * np.sum(margin,axis=1).T
+    dW = np.dot(X.T, margin)
+
+    dW /= X.shape[0]
+    dW += reg * W 
 
     #############################################################################
     #                            FIN DE VOTRE CODE                              #
