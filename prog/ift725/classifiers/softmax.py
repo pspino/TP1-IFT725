@@ -41,6 +41,23 @@ def softmax_naive_loss_function(W, X, y, reg):
     loss = loss*0
     dW = dW*0
 
+    nb_class = W.shape[1]
+    nb_data = X.shape[0]
+    for n in range(nb_data):
+        scores = np.exp(np.dot(W.T, X[n,:]))
+        normalization = np.sum(scores)
+        for k in range(nb_class):
+            p = scores[k]/normalization
+            dscore = p  
+            if(k == y[n]):
+                dscore -= 1            
+                loss -= np.log(p) 
+            dW[:,k] += X[n,:] * dscore
+
+    loss /= nb_data  
+    loss += reg*np.linalg.norm(W**2)
+    dW /= nb_data
+
     #############################################################################
     #                         FIN DE VOTRE CODE                                 #
     #############################################################################
