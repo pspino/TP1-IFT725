@@ -40,7 +40,7 @@ def softmax_naive_loss_function(W, X, y, reg):
     #############################################################################
     loss = loss*0
     dW = dW*0
-
+    
     nb_class = W.shape[1]
     nb_data = X.shape[0]
     for n in range(nb_data):
@@ -94,6 +94,16 @@ def softmax_vectorized_loss_function(W, X, y, reg):
     #############################################################################
     loss = loss * 0
     dW = dW * 0
+    nb_class = W.shape[1]
+    nb_data = X.shape[0]
+
+    scores = np.exp(np.dot(X, W))
+    prob = scores/np.sum(scores, axis=1, keepdims=True)
+    good_scores = -np.log(prob[np.arange(X.shape[0]),y])
+    loss = np.sum(good_scores)/nb_data + reg*np.linalg.norm(W**2)
+    dscore = prob
+    dscore[np.arange(X.shape[0]),y] -= 1
+    dW = np.dot(X.T, dscore)/nb_data
 
     #############################################################################
     #                         FIN DE VOTRE CODE                                 #
