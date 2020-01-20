@@ -73,7 +73,7 @@ def svm_vectorized_loss_function(W, X, y, reg):
 
     N = X.shape[0]
     scores = np.dot(X, W)
-    y_scores = np.matrix(scores[np.arange(scores.shape[0]),y]) #this is to get the scores of the good classes.
+    y_scores = np.matrix(scores[np.arange(scores.shape[0]), y]) #this is to get the scores of the good classes.
     margin = np.maximum(0, 1 + scores - y_scores.T)
     margin[np.arange(X.shape[0]),y] = 0
     loss = np.mean(np.sum(margin, axis=1))

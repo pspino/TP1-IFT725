@@ -40,11 +40,35 @@ def softmax_naive_loss_function(W, X, y, reg):
     #############################################################################
     loss = loss*0
     dW = dW*0
+    
+    N, C = X.shape[0], W.shape[1]
+    dWT = np.transpose(dW)
+    for i in range(N):
+        f_i = np.dot(X[i], W)
+        f_i -= np.max(f_i)
+
+        t_i = y[i]
+        f_t = f_i[t_i]
+        p_f_i = np.sum(np.exp(f_i))
+        S_i = np.exp(f_t) / p_f_i
+
+        loss += -np.log(S_i)
+
+        for j in range(C):
+            if j == t_i:
+                dWT[t_i] += (np.exp(f_i[j]) / p_f_i - 1) * X[i]
+            else:
+                dWT[j] += (np.exp(f_i[j]) / p_f_i) * X[i]
+    
+    # normalization
+    loss /= N
+    loss += 0.5 * reg * np.sum(W * W)
+    dW /= N
+    dW += reg * W
 
     #############################################################################
     #                         FIN DE VOTRE CODE                                 #
     #############################################################################
-
     return loss, dW
 
 
@@ -77,6 +101,24 @@ def softmax_vectorized_loss_function(W, X, y, reg):
     #############################################################################
     loss = loss * 0
     dW = dW * 0
+
+    N = X.shape[0]
+    scores = np.dot(X, W)
+    exp_scores = np.exp(scores)
+    row_sum = exp_scores.sum(axis=1)
+    row_sum = row_sum.reshape((N, 1))
+
+    norm_exp_scores = exp_scores / row_sum
+    row_index = np.arange(N)
+    loss = norm_exp_scores[row_index, y].sum()
+    norm_exp_scores[row_index, y] -= 1
+
+    dW = np.dot(np.transpose(X), norm_exp_scores)
+
+    loss /= N
+    loss += reg * np.sum(W * W)
+    dW /= N
+    dW += reg * W
 
     #############################################################################
     #                         FIN DE VOTRE CODE                                 #
