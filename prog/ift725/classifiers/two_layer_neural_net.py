@@ -72,7 +72,6 @@ class TwoLayerNeuralNet(object):
         H, C = Weights2.shape
 
         # Compute the forward pass
-        scores = None
         #############################################################################
         # TODO: Effectuez la propoagation avant en calculant le scores des classes  #
         #  pour chaque élément de la mini-batch X.  NOTE: cette opération ne        #
@@ -82,7 +81,9 @@ class TwoLayerNeuralNet(object):
         # tableau de la forme (N, C).                                               #
         #############################################################################
 
-        #scores = ...
+        scores = X.dot(Weights1) + biases1 
+        scores[scores < 0] = 0
+        scores = scores.dot(Weights2) + biases2
         #############################################################################
         #                             FIN DE VOTRE CODE                             #
         #############################################################################
@@ -92,7 +93,7 @@ class TwoLayerNeuralNet(object):
             return scores
 
         # Compute the loss
-        loss = None
+        loss = 0
         #############################################################################
         # TODO: Terminez la propagation avant et calculez la softmax +              #
         #  l'entropie-croisée.                                                      #
@@ -101,7 +102,12 @@ class TwoLayerNeuralNet(object):
         # résultat dans la variable "loss", qui doit être une valeur scalaire.      #
         # NOTE : votre code doit être linéarisé et donc ne contenir AUCUNE boucle   #
         #############################################################################
-        loss = loss*0
+        prob_scores = np.exp(scores) / np.sum(np.exp(scores), axis=1, keepdims=True)
+        good_score = prob_scores[range(N),y]
+        loss = np.sum(-np.log(good_score))
+        loss /= N
+        loss += reg*np.linalg.norm(Weights1)**2 
+        loss += reg*np.linalg.norm(Weights2)**2 
 
         #############################################################################
         #                             FIN DE VOTRE CODE                             #
