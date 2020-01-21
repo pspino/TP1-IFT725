@@ -38,13 +38,18 @@ def svm_naive_loss_function(W, X, y, reg):
     wT = W.T
     for it in range(X.shape[0]):
       real_class = y[it]
-      good_score = np.dot(wT[real_class], X[it])  #Find the the real class score and compare it to all the other classes weight.
+
+      #Find the the real class score and compare it to all the other classes weight.
+      good_score = np.dot(wT[real_class], X[it])  
       for j in range(wT.shape[0]):
         if j == real_class:
           continue
         bad_score = np.dot(wT[j], X[it])
-        score = max(0, 1 + bad_score - good_score)  #Applying Hinge loss function calculus.
+
+        #Applying Hinge loss function calculus.
+        score = max(0, 1 + bad_score - good_score)  
         loss += score
+        
         if score > 0:
           dW.T[real_class] -= X[it]
           dW.T[j] += X[it]

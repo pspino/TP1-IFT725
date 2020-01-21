@@ -38,8 +38,28 @@ def softmax_naive_loss_function(W, X, y, reg):
     # numérique, soustrayez le score maximum de la classe de tous les scores    #
     # d'un échantillon.                                                         #
     #############################################################################
-    loss = loss*0
-    dW = dW*0
+    wT = W.T
+    dat_size = X.shape[0]
+    class_size = wT.shape[0]
+
+    for it in range(dat_size):
+      real_class = y[it]
+      f_t = X[it].dot(wT[real_class])
+      e_fj = np.sum(np.exp(wT.dot(X[it])), axis=0)
+      loss -= np.log(np.exp(f_t)/e_fj)
+
+      for j in range(class_size):
+        dL = np.exp(X[it].dot(wT[j]))
+        dL /= e_fj
+        if j == real_class:
+          dL = dL - 1
+        dW.T[j] += X[it] * dL
+
+    loss /= X.shape[0]
+    loss += reg * np.linalg.norm(W)**2
+    
+    dW /= dat_size
+    dW += reg * W
 
     #############################################################################
     #                         FIN DE VOTRE CODE                                 #
@@ -75,8 +95,19 @@ def softmax_vectorized_loss_function(W, X, y, reg):
     # numérique, soustrayez le score maximum de la classe de tous les scores    #
     # d'un échantillon.                                                         #
     #############################################################################
-    loss = loss * 0
-    dW = dW * 0
+    #Loss
+    scores_prob = np.exp(X.dot(W)) / np.sum(np.exp(X.dot(W)), axis=1, keepdims=True)
+    good_score = scores_prob[range(X.shape[0]),y]
+    loss = np.sum(-np.log(good_score))
+    loss /= X.shape[0]
+    loss += reg * np.linalg.norm(W)**2
+
+    #Gradient
+    dW = np.exp(X.dot(W)) / np.sum(np.exp(X.dot(W)), axis=1, keepdims=True)
+    dW[range(X.shape[0]),y] -= 1
+    dW /= X.shape[0]
+    dW = X.T.dot(dW)  
+    dW += reg * W
 
     #############################################################################
     #                         FIN DE VOTRE CODE                                 #
