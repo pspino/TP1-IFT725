@@ -129,11 +129,26 @@ class TwoLayerNeuralNet(object):
         #   f1  pre-activation of the 1st layer (N, H)
         #   a1  activation of the 1st layer (N, H)
 
+        dscore = Weights2.dot(scores.T)
+        dW1 = np.exp(dscore) / np.sum(np.exp(dscore), axis=1, keepdims=True)
+        dW1[range(N),y] -= 1
+        dW1 /= N
+        dW1 = X.T.dot(dW1.T)
+        
+        db1 = np.sum(dW1, axis=0, keepdims=True)
 
-        grads['W1'] = 0
-        grads['W2'] = 0
-        grads['b1'] = 0
-        grads['b2'] = 0
+        dscore = X.dot(Weights1)
+        dW2 = np.exp(dscore) / np.sum(np.exp(dscore), axis=1, keepdims=True)
+        dW2[range(N),y] -= 1
+        dW2 /= N
+        dW2 = scores.T.dot(dW2)
+
+        db2 = np.sum(dW1, axis=1, keepdims=True)
+        
+        grads['W1'] = dW1
+        grads['W2'] = dW2.T
+        grads['b1'] = db1
+        grads['b2'] = db2
         #############################################################################
         #                             FIN DE VOTRE CODE                             #
         #############################################################################
