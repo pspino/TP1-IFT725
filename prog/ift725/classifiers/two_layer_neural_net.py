@@ -195,7 +195,9 @@ class TwoLayerNeuralNet(object):
             #  d'entrainement.                                                      #
             # Stockez-les dans "data_batch" and "labels_batch" respectivement.      #
             #########################################################################
-
+            idx = np.random.choice(num_train,batch_size)
+            data_batch = X[idx]
+            labels_batch = y[idx]
             #########################################################################
             #                            FIN DE VOTRE CODE                          #
             #########################################################################
@@ -211,7 +213,10 @@ class TwoLayerNeuralNet(object):
             # Vous aurez besoin d'utiliser les gradients stockés dans le            #
             # dictionnaire "grads" défini précédemment.                             #
             #########################################################################
-
+            self.params['W1'] -= learning_rate * grads['W1']
+            self.params['b1'] -= learning_rate * grads['b1']
+            self.params['W2'] -= learning_rate * grads['W2']
+            self.params['b2'] -= learning_rate * grads['b2']
 
             #########################################################################
             #                            FIN DE VOTRE CODE                          #
@@ -258,8 +263,12 @@ class TwoLayerNeuralNet(object):
         # TODO: Implémentez cette fonction; elle devrait être TRÈS simple!        #
         # Indice : vous pouvez appeler des fonctions déjà codées...               #
         ###########################################################################
-
-
+        scores1 = np.dot(X, self.params['W1']) + self.params['b1']
+        relu_scores = np.maximum(0, scores1)
+        scores = np.dot(relu_scores, self.params['W2']) + self.params['b2']
+        expscore = np.exp(scores)     
+        softmax = expscore / np.sum(expscore, axis=1, keepdims=True)
+        y_pred = np.argmax(softmax, axis=1)
         ###########################################################################
         #                             FIN DE VOTRE CODE                           #
         ###########################################################################
