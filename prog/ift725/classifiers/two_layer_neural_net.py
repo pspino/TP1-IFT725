@@ -81,8 +81,9 @@ class TwoLayerNeuralNet(object):
         # Stocker le résultat dans la variable "scores", qui devrait être un        #
         # tableau de la forme (N, C).                                               #
         #############################################################################
-
-        #scores = ...
+        scores_1 = np.dot(X, Weights1) + biases1
+        relu = np.maximum(0, scores_1)
+        scores = np.dot(relu, Weights2) + biases2  # [NxC]
         #############################################################################
         #                             FIN DE VOTRE CODE                             #
         #############################################################################
@@ -101,8 +102,14 @@ class TwoLayerNeuralNet(object):
         # résultat dans la variable "loss", qui doit être une valeur scalaire.      #
         # NOTE : votre code doit être linéarisé et donc ne contenir AUCUNE boucle   #
         #############################################################################
-        loss = loss*0
+        # loss = loss*0
 
+        exp_scores = np.exp(scores)
+        softmax = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+
+        loss = -np.log(softmax[range(N), y])
+        loss = loss.sum() / N
+        loss += reg * (np.sum(Weights2 ** 2) + np.sum(Weights1 ** 2))
         #############################################################################
         #                             FIN DE VOTRE CODE                             #
         #############################################################################
@@ -122,12 +129,27 @@ class TwoLayerNeuralNet(object):
         #   f   class scores (N, C)
         #   f1  pre-activation of the 1st layer (N, H)
         #   a1  activation of the 1st layer (N, H)
+        a1 = relu
 
+        f = softmax
+        f[range(N), y] -= 1
+        f /= N
 
-        grads['W1'] = 0
-        grads['W2'] = 0
-        grads['b1'] = 0
-        grads['b2'] = 0
+        dw_2 = np.dot(np.transpose(a1), f)
+        db_2 = np.sum(f, axis=0)
+
+        f1 = np.dot(f, np.transpose(Weights2))
+        f1[scores_1 <= 0] = 0
+        dw_1 = np.dot(np.transpose(X), f1)
+        db_1 = np.sum(f1, axis=0)
+
+        dw_1 += reg * Weights1
+        dw_2 += reg * Weights2
+
+        grads['W1'] = dw_1
+        grads['W2'] = dw_2
+        grads['b1'] = db_1
+        grads['b2'] = db_2
         #############################################################################
         #                             FIN DE VOTRE CODE                             #
         #############################################################################
@@ -189,7 +211,6 @@ class TwoLayerNeuralNet(object):
             # dictionnaire "grads" défini précédemment.                             #
             #########################################################################
 
-
             #########################################################################
             #                            FIN DE VOTRE CODE                          #
             #########################################################################
@@ -235,7 +256,6 @@ class TwoLayerNeuralNet(object):
         # TODO: Implémentez cette fonction; elle devrait être TRÈS simple!        #
         # Indice : vous pouvez appeler des fonctions déjà codées...               #
         ###########################################################################
-
 
         ###########################################################################
         #                             FIN DE VOTRE CODE                           #

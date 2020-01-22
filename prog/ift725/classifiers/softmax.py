@@ -45,7 +45,8 @@ def softmax_naive_loss_function(W, X, y, reg):
     dWT = np.transpose(dW)
     for i in range(N):
         f_i = np.dot(X[i], W)
-        f_i -= np.max(f_i)
+        # f_i -= np.max(f_i) # numerical stability
+
 
         t_i = y[i]
         f_t = f_i[t_i]
