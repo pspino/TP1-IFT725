@@ -143,8 +143,8 @@ class TwoLayerNeuralNet(object):
         dw_1 = np.dot(np.transpose(X), f1)
         db_1 = np.sum(f1, axis=0)
 
-        dw_1 += reg * Weights1
-        dw_2 += reg * Weights2
+        dw_1 += 2 * reg * Weights1
+        dw_2 += 2 * reg * Weights2
 
         grads['W1'] = dw_1
         grads['W2'] = dw_2
