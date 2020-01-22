@@ -81,8 +81,9 @@ class TwoLayerNeuralNet(object):
         # Stocker le résultat dans la variable "scores", qui devrait être un        #
         # tableau de la forme (N, C).                                               #
         #############################################################################
-
-        #scores = ...
+        scores1 = np.dot(X, Weights1) + biases1
+        relu_scores = np.maximum(0, scores1)
+        scores = np.dot(relu_scores, Weights2) + biases2
         #############################################################################
         #                             FIN DE VOTRE CODE                             #
         #############################################################################
@@ -101,8 +102,15 @@ class TwoLayerNeuralNet(object):
         # résultat dans la variable "loss", qui doit être une valeur scalaire.      #
         # NOTE : votre code doit être linéarisé et donc ne contenir AUCUNE boucle   #
         #############################################################################
-        loss = loss*0
+        loss = 0
+        expscore = np.exp(scores)
+        softmax = expscore / np.sum(expscore, axis=1, keepdims=True)
+        good_score = softmax[range(N),y]
 
+        loss = np.sum(-np.log(good_score))/N
+
+        loss += reg*np.linalg.norm(Weights1)**2 
+        loss += reg*np.linalg.norm(Weights2)**2
         #############################################################################
         #                             FIN DE VOTRE CODE                             #
         #############################################################################
@@ -122,12 +130,27 @@ class TwoLayerNeuralNet(object):
         #   f   class scores (N, C)
         #   f1  pre-activation of the 1st layer (N, H)
         #   a1  activation of the 1st layer (N, H)
+    
+        f = softmax
+        f[range(N),y] -= 1  
+        
+        a1 = relu_scores 
+        f1 = scores1
 
+        f2 = np.dot(f, Weights2.T)
+        f2[f1 <= 0] = 0
 
-        grads['W1'] = 0
-        grads['W2'] = 0
-        grads['b1'] = 0
-        grads['b2'] = 0
+        dW2 = np.dot(a1.T, f)/N
+        db2 = np.sum(f, axis=0)/N
+        dW1 = np.dot(X.T, f2)/N
+        db1 = np.sum(f2, axis=0)/N
+
+        grads['W1'] = dW1 + 2*reg*Weights1
+        grads['b1'] = db1 
+
+        grads['W2'] = dW2 + 2*reg*Weights2
+        grads['b2'] = db2
+
         #############################################################################
         #                             FIN DE VOTRE CODE                             #
         #############################################################################
