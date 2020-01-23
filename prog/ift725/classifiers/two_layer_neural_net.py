@@ -195,6 +195,10 @@ class TwoLayerNeuralNet(object):
             # Stockez-les dans "data_batch" and "labels_batch" respectivement.      #
             #########################################################################
 
+            indexes = np.random.choice(num_train, batch_size)
+            data_batch = X[indexes]
+            labels_batch = y[indexes]
+
             #########################################################################
             #                            FIN DE VOTRE CODE                          #
             #########################################################################
@@ -210,6 +214,11 @@ class TwoLayerNeuralNet(object):
             # Vous aurez besoin d'utiliser les gradients stockés dans le            #
             # dictionnaire "grads" défini précédemment.                             #
             #########################################################################
+
+            self.params['W1'] -= learning_rate*grads['W1']
+            self.params['b1'] -= learning_rate*grads['b1']
+            self.params['W2'] -= learning_rate*grads['W2']
+            self.params['b2'] -= learning_rate*grads['b2']
 
             #########################################################################
             #                            FIN DE VOTRE CODE                          #
@@ -256,6 +265,19 @@ class TwoLayerNeuralNet(object):
         # TODO: Implémentez cette fonction; elle devrait être TRÈS simple!        #
         # Indice : vous pouvez appeler des fonctions déjà codées...               #
         ###########################################################################
+
+        scores_1 = np.dot(X, self.params['W1'])
+        scores_1 += self.params['b1']
+
+        relu = np.maximum(0, scores_1)
+
+        scores = np.dot(relu, self.params['W2'])
+        scores += self.params['b2']
+
+        exp_scores = np.exp(scores)
+        softmax = exp_scores / np.sum(exp_scores, axis=1, keepdims=True)
+
+        y_pred = np.argmax(softmax, axis=1)
 
         ###########################################################################
         #                             FIN DE VOTRE CODE                           #
