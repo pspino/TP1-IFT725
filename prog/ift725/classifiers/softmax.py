@@ -1,5 +1,5 @@
-# Code adapté de projets académiques de la professeur Fei Fei Li et de ses étudiants Andrej Karpathy, Justin Johnson et autres.
-# Version finale rédigée par Carl Lemaire, Vincent Ducharme et Pierre-Marc Jodoin
+# Code adapté de projets académiques de la professeur Fei Fei Li et de ses étudiants Andrej Karpathy, Justin Johnson
+# et autres. Version finale rédigée par Carl Lemaire, Vincent Ducharme et Pierre-Marc Jodoin
 
 import numpy as np
 
@@ -7,17 +7,14 @@ import numpy as np
 def softmax_naive_loss_function(W, X, y, reg):
     """
     Softmax loss function, naive implementation (with loops)
-
     Inputs have dimension D, there are C classes, and we operate on minibatches
     of N examples.
-
     Inputs:
     - W: A numpy array of shape (D, C) containing weights.
     - X: A numpy array of shape (N, D) containing a minibatch of data.
     - y: A numpy array of shape (N,) containing training labels; y[i] = c means
       that X[i] has label c, where 0 <= c < C.
     - reg: (float) regularization strength
-
     Returns a tuple of:
     - loss as single float
     - gradient with respect to weights W; an array of same shape as W
@@ -38,27 +35,40 @@ def softmax_naive_loss_function(W, X, y, reg):
     # numérique, soustrayez le score maximum de la classe de tous les scores    #
     # d'un échantillon.                                                         #
     #############################################################################
-    loss = loss*0
-    dW = dW*0
+
+    nb_data, nb_class = X.shape[0], W.shape[1]
+
+    for n in range(nb_data):
+        f = np.dot(X[n, :], W)
+        scores = np.exp(f - np.max(f))  # subtract maximum class score for numerical stability
+        for k in range(nb_class):
+            p = scores[k] / np.sum(scores)
+            dscore = p
+            # decrease loss on correct class
+            if k == y[n]:
+                dscore -= 1
+                loss -= np.log(p)
+            dW[:, k] += X[n, :] * dscore
+
+    loss /= nb_data
+    loss += reg * np.linalg.norm(W ** 2)
+    dW /= nb_data
 
     #############################################################################
     #                         FIN DE VOTRE CODE                                 #
     #############################################################################
-
     return loss, dW
 
 
 def softmax_vectorized_loss_function(W, X, y, reg):
     """
     Softmax loss function, vectorized version.
-
     Inputs:
     - W: A numpy array of shape (D, C) containing weights.
     - X: A numpy array of shape (N, D) containing a minibatch of data.
     - y: A numpy array of shape (N,) containing training labels; y[i] = c means
       that X[i] has label c, where 0 <= c < C.
     - reg: (float) regularization strength
-
     Returns a tuple of:
     - loss as single float
     - gradient with respect to weights W; an array of same shape as W
@@ -75,8 +85,23 @@ def softmax_vectorized_loss_function(W, X, y, reg):
     # numérique, soustrayez le score maximum de la classe de tous les scores    #
     # d'un échantillon.                                                         #
     #############################################################################
-    loss = loss * 0
-    dW = dW * 0
+
+    nb_data, nb_class = X.shape[0], W.shape[1]
+
+    f = np.dot(X, W)
+    scores = np.exp(f - np.max(f))  # subtract maximum class score for numerical stability
+    prob = scores / np.sum(scores, axis=1, keepdims=True)
+    good_scores = -np.log(prob[np.arange(X.shape[0]), y])
+
+    loss = np.sum(good_scores)
+    dscore = prob
+    dscore[np.arange(X.shape[0]), y] -= 1
+
+    dW = np.dot(X.T, dscore)
+
+    loss /= nb_data
+    loss += reg * np.linalg.norm(W ** 2)
+    dW /= nb_data
 
     #############################################################################
     #                         FIN DE VOTRE CODE                                 #
