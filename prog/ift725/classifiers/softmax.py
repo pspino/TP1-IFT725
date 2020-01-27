@@ -38,34 +38,24 @@ def softmax_naive_loss_function(W, X, y, reg):
     # numérique, soustrayez le score maximum de la classe de tous les scores    #
     # d'un échantillon.                                                         #
     #############################################################################
-    loss = loss*0
-    dW = dW*0
-    
-    N, C = X.shape[0], W.shape[1]
-    dWT = np.transpose(dW)
-    for i in range(N):
-        f_i = np.dot(X[i], W)
-        # f_i -= np.max(f_i) # numerical stability
 
+    nb_data, nb_class = X.shape[0], W.shape[1]
 
-        t_i = y[i]
-        f_t = f_i[t_i]
-        p_f_i = np.sum(np.exp(f_i))
-        S_i = np.exp(f_t) / p_f_i
+    for n in range(nb_data):
+        f = np.dot(X[n, :], W)
+        scores = np.exp(f - np.max(f))  # subtract maximum class score for numerical stability
+        for k in range(nb_class):
+            p = scores[k] / np.sum(scores)
+            dscore = p
+            # decrease loss on correct class
+            if k == y[n]:
+                dscore -= 1
+                loss -= np.log(p)
+            dW[:, k] += X[n, :] * dscore
 
-        loss += -np.log(S_i)
-
-        for j in range(C):
-            if j == t_i:
-                dWT[t_i] += (np.exp(f_i[j]) / p_f_i - 1) * X[i]
-            else:
-                dWT[j] += (np.exp(f_i[j]) / p_f_i) * X[i]
-    
-    # normalization
-    loss /= N
-    loss += 0.5 * reg * np.sum(W * W)
-    dW /= N
-    dW += reg * W
+    loss /= nb_data
+    loss += reg * np.linalg.norm(W ** 2)
+    dW /= nb_data
 
     #############################################################################
     #                         FIN DE VOTRE CODE                                 #
@@ -100,26 +90,23 @@ def softmax_vectorized_loss_function(W, X, y, reg):
     # numérique, soustrayez le score maximum de la classe de tous les scores    #
     # d'un échantillon.                                                         #
     #############################################################################
-    loss = loss * 0
-    dW = dW * 0
 
-    N = X.shape[0]
-    scores = np.dot(X, W)
-    exp_scores = np.exp(scores)
-    row_sum = exp_scores.sum(axis=1)
-    row_sum = row_sum.reshape((N, 1))
+    nb_data, nb_class = X.shape[0], W.shape[1]
 
-    norm_exp_scores = exp_scores / row_sum
-    row_index = np.arange(N)
-    loss = norm_exp_scores[row_index, y].sum()
-    norm_exp_scores[row_index, y] -= 1
+    f = np.dot(X, W)
+    scores = np.exp(f - np.max(f))  # subtract maximum class score for numerical stability
+    prob = scores / np.sum(scores, axis=1, keepdims=True)
+    good_scores = -np.log(prob[np.arange(X.shape[0]), y])
 
-    dW = np.dot(np.transpose(X), norm_exp_scores)
+    loss = np.sum(good_scores)
+    dscore = prob
+    dscore[np.arange(X.shape[0]), y] -= 1
 
-    loss /= N
-    loss += reg * np.sum(W * W)
-    dW /= N
-    dW += reg * W
+    dW = np.dot(X.T, dscore)
+
+    loss /= nb_data
+    loss += reg * np.linalg.norm(W ** 2)
+    dW /= nb_data
 
     #############################################################################
     #                         FIN DE VOTRE CODE                                 #
