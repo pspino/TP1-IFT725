@@ -56,6 +56,10 @@ class LinearClassifier(object):
             # l'échantillonnage sans remplacement.                                  #
             #########################################################################
 
+            idx = np.random.choice(num_train,batch_size) 
+            X_batch = X[idx]
+            y_batch = y[idx]
+
             #########################################################################
             #                      FIN DE VOTRE CODE                                #
             #########################################################################
@@ -69,6 +73,8 @@ class LinearClassifier(object):
             # TODO: Mise à jour des poids en utilisant le gradient et la vitesse    #
             #  d'apprentissagethe weights using the gradient and the learning rate. #
             #########################################################################
+
+            self.W -= learning_rate * grad
 
             #########################################################################
             #                      FIN DE VOTRE CODE                                #
@@ -97,6 +103,9 @@ class LinearClassifier(object):
         # TODO: Implémentez cette fonction.                                       #
         # Stockez les étiquettes prédites dans "labels_pred".                     #
         ###########################################################################
+
+        scores = np.dot(X,self.W)
+        labels_pred = np.argmax(scores, axis=1)
 
         ###########################################################################
         #                          FIN DE VOTRE CODE                              #
