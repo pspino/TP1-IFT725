@@ -81,16 +81,18 @@ class TwoLayerNeuralNet(object):
         # tableau de la forme (N, C).                                               #
         #############################################################################
 
-        scores = X.dot(Weights1) + biases1 
-        scores[scores < 0] = 0
-        scores = scores.dot(Weights2) + biases2
+        f1 = X.dot(Weights1) + biases1 
+        a1 = f1
+        a1[a1 < 0] = 0
+        f = a1.dot(Weights2) + biases2
+        
         #############################################################################
         #                             FIN DE VOTRE CODE                             #
         #############################################################################
 
         # If the targets are not given then jump out, we're done
         if y is None:
-            return scores
+            return f
 
         # Compute the loss
         loss = 0
@@ -102,7 +104,7 @@ class TwoLayerNeuralNet(object):
         # résultat dans la variable "loss", qui doit être une valeur scalaire.      #
         # NOTE : votre code doit être linéarisé et donc ne contenir AUCUNE boucle   #
         #############################################################################
-        prob_scores = np.exp(scores) / np.sum(np.exp(scores), axis=1, keepdims=True)
+        prob_scores = np.exp(f) / np.sum(np.exp(f), axis=1, keepdims=True)
         good_score = prob_scores[range(N),y]
         loss = np.sum(-np.log(good_score))
         loss /= N
@@ -129,24 +131,31 @@ class TwoLayerNeuralNet(object):
         #   f1  pre-activation of the 1st layer (N, H)
         #   a1  activation of the 1st layer (N, H)
 
-        dscore = Weights2.dot(scores.T)
-        dW1 = np.exp(dscore) / np.sum(np.exp(dscore), axis=1, keepdims=True)
-        dW1[range(N),y] -= 1
-        dW1 /= N
-        dW1 = X.T.dot(dW1.T)
-        
-        db1 = np.sum(dW1, axis=0, keepdims=True)
-
-        dscore = X.dot(Weights1)
-        dW2 = np.exp(dscore) / np.sum(np.exp(dscore), axis=1, keepdims=True)
-        dW2[range(N),y] -= 1
+        # we compute the last layer first and then we go back to the first layer (backprop)
+        dW2 = np.exp(f) / np.sum(np.exp(f), axis=1, keepdims=True)
+        dW2[range(N), y] -= 1
         dW2 /= N
-        dW2 = scores.T.dot(dW2)
-
-        db2 = np.sum(dW1, axis=1, keepdims=True)
         
+        db2 = np.sum(dW2, axis=0, keepdims=True)
+
+        dW2 = a1.T.dot(dW2)
+        
+        # hidden layer.
+        dW1 = np.exp(f) / np.sum(np.exp(f), axis=1, keepdims=True)
+        dW1[range(N), y] -= 1
+        dW1 /= N
+        dW1 = dW1.dot(Weights2.T)
+        dW1[a1 <= 0] = 0
+
+        db1 = np.sum(dW1, axis=0, keepdims=True)
+        
+        dW1 = X.T.dot(dW1)
+
+        dW2 += 2*(reg * Weights2.T).T
+        dW1 += 2*(reg * Weights1.T).T
+
         grads['W1'] = dW1
-        grads['W2'] = dW2.T
+        grads['W2'] = dW2
         grads['b1'] = db1
         grads['b2'] = db2
         #############################################################################
